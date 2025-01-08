@@ -3,6 +3,7 @@ package client
 import (
 	"fmt"
 	"io"
+	"log"
 	"regexp"
 	"sync"
 	"time"
@@ -94,7 +95,7 @@ const attendanceDetailsURL = "https://lmsug23.iiitkottayam.ac.in/mod/attendance/
 
 func todayDate() string {
 	curr := time.Now()
-	date := curr.Format("Mon 02 Jan 2006")
+	date := curr.Format("Mon 2 Jan 2006")
 	return date
 }
 
@@ -115,6 +116,7 @@ func getOverallDetails(doc *goquery.Document) OverallAttendance {
 
 func (lmsCLient *LMSCLient) GetAttendanceDetails(id string) (*AttendanceDetails, error) {
 	today := todayDate()
+	log.Println(today)
 	URLWithId := fmt.Sprintf(attendanceDetailsURL, id)
 	resp, err := lmsCLient.HttpClient.Get(URLWithId)
 	if err != nil {
@@ -141,6 +143,7 @@ func (lmsCLient *LMSCLient) GetAttendanceDetails(id string) (*AttendanceDetails,
 		attRow.Desc = s.Find(".c1>div").First().Text()
 		attRow.Status = s.Find(".c2").First().Text()
 		if attRow.Date == today {
+			log.Println("success")
 			TodayAttend = append(TodayAttend, attRow)
 		}
 		ParsedTable = append(ParsedTable, attRow)

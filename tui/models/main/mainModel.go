@@ -67,7 +67,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 		m.width = msg.Width
 		if !m.sentWidth {
-			m.contentModel = content.InitialModel(m.width/3, m.height)
+			m.contentModel = content.InitialModel(m.width, m.height)
 			m.sentWidth = true
 		}
 		if m.contentModel.Attendance.Attendance != nil {
@@ -133,7 +133,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.isLoading = false
 		m.contentModel.Attendance.Attendance = msg
 		var l []list.Item
-		var rows []table.Row
+		var DetailedRows []table.Row
+		var todayRows []table.Row
 		overall := fmt.Sprintf("Total: %v\nPoints: %v\nPercentage:%v", msg[0].Overall.Total, msg[0].Overall.Points, msg[0].Overall.Percentage)
 		for _, attend := range msg[0].Attendances {
 			row := table.Row{
@@ -141,13 +142,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				attend.Time,
 				attend.Status,
 			}
-			rows = append(rows, row)
+			DetailedRows = append(DetailedRows, row)
 		}
 		m.contentModel.Attendance.OverAll = overall
-		m.contentModel.Attendance.DetailedTable.SetRows(rows)
+		m.contentModel.Attendance.DetailedTable.SetRows(DetailedRows)
 		for _, attendDet := range msg {
 			l = append(l, content.CourseNameItem(attendDet.CourseName))
+			for _, today := range attendDet.Today {
+				row := table.Row{attendDet.CourseName, today.Time, today.Status}
+				todayRows = append(todayRows, row)
+			}
 		}
+		m.contentModel.Today.Table.SetRows(todayRows)
 		m.contentModel.Attendance.List = list.New(l, list.NewDefaultDelegate(), m.width/3, m.height)
 
 	case tea.KeyMsg:
