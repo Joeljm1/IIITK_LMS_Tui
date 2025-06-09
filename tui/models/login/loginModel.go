@@ -18,7 +18,7 @@ type Model struct {
 	psswdInp      textinput.Model
 	focus         int
 	validationErr error
-	w             io.Writer
+	W             io.Writer
 }
 
 type (
@@ -59,7 +59,10 @@ func InitialModel() Model {
 	t2.PromptStyle = focusedStyle
 	t2.TextStyle = focusedStyle
 	t2.Blur()
-	f, err := os.OpenFile("debug.txt", os.O_RDWR, 0644)
+	f, err := os.OpenFile("./debug.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
+	if err != nil {
+		panic(err)
+	}
 	return Model{
 		Username:      "",
 		Psswd:         "",
@@ -68,7 +71,7 @@ func InitialModel() Model {
 		psswdInp:      textinput.New(),
 		focus:         0,
 		validationErr: nil,
-		w:             f,
+		W:             f,
 	}
 }
 
@@ -137,6 +140,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Model) View() string {
 	if m.Err != nil {
+		m.W.Write([]byte("Test"))
 		sb := strings.Builder{}
 		sb.WriteString(m.unameInp.View())
 		sb.WriteRune('\n')

@@ -36,16 +36,10 @@ func (m model) Init() tea.Cmd {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if m.login.Err != nil {
-		teaModel, cmd := m.Update(msg)
-		m.login, _ = teaModel.(login.Model)
-		return m, cmd
-	}
-
 	switch msg := msg.(type) {
 	case login.LoginErr, login.UName, login.Psswd, login.LoginValidErr:
 		// m.login,cmd=m.Update(msg) do it with type inference
-		teaModel, cmd := m.Update(msg)
+		teaModel, cmd := m.login.Update(msg)
 		m.login, _ = teaModel.(login.Model)
 		return m, cmd
 	case login.LoginComplete:
@@ -55,6 +49,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.sp, cmd = m.sp.Update(msg)
 		return m, cmd
 	case tea.KeyMsg:
+		if m.login.Err != nil {
+			teaModel, cmd := m.login.Update(msg)
+			m.login, _ = teaModel.(login.Model)
+			return m, cmd
+		}
 		switch msg.String() {
 		case "ctrl+c":
 			return m, tea.Quit
