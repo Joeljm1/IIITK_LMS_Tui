@@ -18,7 +18,9 @@ type Model struct {
 	psswdInp      textinput.Model
 	focus         int
 	validationErr error
-	W             io.Writer
+	W             io.Writer // for debugging
+	width         int
+	height        int
 }
 
 type (
@@ -47,7 +49,11 @@ var (
 	blurredButton  = blurredStyle.Render(" [ Submit] ")
 	focussedButton = focusedStyle.Render(" [ Submit] ")
 
-	errMsgStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#ff0000"))
+	errMsgStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("#ff0000"))
+	loginBoxBorder = lipgloss.RoundedBorder()
+	topBox         = lipgloss.NewStyle().Align(lipgloss.Center)
+	loginBox       = lipgloss.NewStyle().Border(loginBoxBorder, true).
+			BorderForeground(lipgloss.Color("#05d7e6")).Align(lipgloss.Center)
 )
 
 func InitialModel() Model {
@@ -86,6 +92,8 @@ func (m Model) Init() tea.Cmd {
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.height, m.width = msg.Height, msg.Width
 	case UName:
 		m.Username = string(msg)
 		if m.Psswd != "" {
@@ -162,7 +170,9 @@ func (m Model) View() string {
 			sb.WriteRune('\n')
 			sb.WriteString(errMsgStyle.Render("Your username or password is invalid"))
 		}
-		return sb.String()
+		topBoxStyle := topBox.Width(m.width).Height(m.height).Padding(m.height/4, 0)
+		loginBoxStyle := loginBox.Width(m.width/2).Height(m.height/2).Padding(m.height/4, 0)
+		return topBoxStyle.Render(loginBoxStyle.Render(sb.String()))
 	}
 	return ""
 }
