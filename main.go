@@ -15,7 +15,7 @@ func main() {
 		os.Exit(1)
 	}
 	defer f.Close()
-	p := tea.NewProgram(mainModel.InitialModel())
+	p := tea.NewProgram(mainModel.InitialModel(), tea.WithAltScreen())
 	if _, err = p.Run(); err != nil {
 		f.WriteString(err.Error())
 		os.Exit(1)

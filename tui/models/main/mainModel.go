@@ -20,7 +20,7 @@ func InitialModel() model {
 	sp := spinner.New()
 	mySpinner := spinner.Spinner{
 		Frames: []string{"L", "Lo", "Loa", "Load", "Loadi", "Loadin", "Loading", "Loading😎"},
-		FPS:    time.Second / 1,
+		FPS:    time.Second / 5,
 	}
 	sp.Spinner = mySpinner
 	sp.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
@@ -41,9 +41,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// m.login,cmd=m.Update(msg) do it with type inference
 		teaModel, cmd := m.login.Update(msg)
 		m.login, _ = teaModel.(login.Model)
+		m.isLoading = false
 		return m, cmd
 	case login.LoginComplete:
 		m.isLoading = false
+		m.login.Err = nil
+		return m, nil
 	case spinner.TickMsg:
 		var cmd tea.Cmd
 		m.sp, cmd = m.sp.Update(msg)

@@ -12,8 +12,8 @@ import (
 const serviceName = "lmsTui"
 
 var (
-	errLogin       = LoginErr(errors.New("failed to fetch login details"))
-	errValidDetail = LoginValidErr(errors.New("details were not valid"))
+	errLogin       = LoginErr{errors.New("failed to fetch login details")}
+	errValidDetail = LoginValidErr{errors.New("details were not valid")}
 )
 
 // Get username from os kernal keyring

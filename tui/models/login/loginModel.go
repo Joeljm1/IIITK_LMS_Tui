@@ -23,9 +23,13 @@ type Model struct {
 
 type (
 	// Sent when details not in keyring
-	LoginErr error
+	LoginErr struct {
+		e error
+	}
 	// Sent when details given by user are wrong
-	LoginValidErr error
+	LoginValidErr struct {
+		e error
+	}
 	UName         string
 	Psswd         string
 	LoginComplete string
@@ -54,8 +58,8 @@ func InitialModel() Model {
 	t1.TextStyle = focusedStyle
 	t1.Focus()
 	t2 := textinput.New()
-	t1.CharLimit = 8
-	t1.Placeholder = "Password"
+	t2.CharLimit = 8
+	t2.Placeholder = "Password"
 	t2.PromptStyle = focusedStyle
 	t2.TextStyle = focusedStyle
 	t2.Blur()
@@ -67,8 +71,8 @@ func InitialModel() Model {
 		Username:      "",
 		Psswd:         "",
 		Err:           nil,
-		unameInp:      textinput.New(),
-		psswdInp:      textinput.New(),
+		unameInp:      t1,
+		psswdInp:      t2,
 		focus:         0,
 		validationErr: nil,
 		W:             f,
@@ -85,23 +89,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case UName:
 		m.Username = string(msg)
 		if m.Psswd != "" {
-			m.Err = nil
-			cmd = m.LoginComplete
+			return m, m.LoginComplete
 		}
-		return m, cmd
 	case Psswd:
 		m.Psswd = string(msg)
 		if m.Username != "" {
-			m.Err = nil
-			cmd = m.LoginComplete
+			return m, m.LoginComplete
 		}
-		return m, cmd
 	case LoginErr: // no details in keyring
-		m.Err = msg
+		m.Err = msg.e
 	case LoginValidErr:
-		m.validationErr = msg
+		m.validationErr = msg.e
 	case Valid: // got valid details
 		return m, tea.Batch(m.sendUsername, m.sendPasswd)
+
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":
@@ -112,10 +113,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				// TODO validate uname and psswd
 				uname := m.unameInp.Value()
 				psswd := m.psswdInp.Value()
-
+				m.validationErr = nil // to remove error
 				return m, m.validateDetails(uname, psswd)
 			}
-			if val == "up" || val == "ctrl+shift+tab" || val == "enter" {
+			if val == "up" || val == "ctrl+shift+tab" {
 				m.focus = max(m.focus-1, 0)
 			} else {
 				m.focus = min(m.focus+1, 2)
@@ -123,9 +124,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.focus == 0 {
 				cmd = m.unameInp.Focus()
 				m.psswdInp.Blur()
-			} else {
+			} else if m.focus == 1 {
 				m.unameInp.Blur()
 				cmd = m.psswdInp.Focus()
+			} else {
+				m.unameInp.Blur()
+				m.psswdInp.Blur()
 			}
 			return m, cmd
 		}
@@ -140,10 +144,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Model) View() string {
 	if m.Err != nil {
-		m.W.Write([]byte("Test"))
 		sb := strings.Builder{}
+		sb.WriteString("Username: ")
 		sb.WriteString(m.unameInp.View())
 		sb.WriteRune('\n')
+		sb.WriteString("Password: ")
 		sb.WriteString(m.psswdInp.View())
 		sb.WriteRune('\n')
 		button := blurredButton
@@ -153,6 +158,8 @@ func (m Model) View() string {
 		}
 		sb.WriteString(button)
 		if m.validationErr != nil {
+			sb.WriteRune('\n')
+			sb.WriteRune('\n')
 			sb.WriteString(errMsgStyle.Render("Your username or password is invalid"))
 		}
 		return sb.String()
