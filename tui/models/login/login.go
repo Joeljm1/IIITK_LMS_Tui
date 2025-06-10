@@ -96,3 +96,7 @@ func (m Model) validateDetails(username, password string) tea.Cmd {
 		return Valid(true)
 	}
 }
+
+func (m Model) load() tea.Msg {
+	return Load(struct{}{})
+}
