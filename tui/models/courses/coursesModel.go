@@ -13,6 +13,7 @@ type Model struct {
 	AllCourses client.CourseList //[]Course
 	Selected   map[int]struct{}
 	focus      int
+	Chosen     []client.Course
 }
 
 func InitialModel() Model {
@@ -20,6 +21,7 @@ func InitialModel() Model {
 		AllCourses: nil,
 		Selected:   make(map[int]struct{}),
 		focus:      0,
+		Chosen:     nil,
 	}
 }
 
@@ -33,29 +35,11 @@ var (
 
 type ChoiceFromLMSNeeded struct{}
 
-func CheckChoiceFile(lms *client.LMSCLient) tea.Cmd {
-	return func() tea.Msg {
-		choice, err := lms.ChoicesInFile()
-		if err != nil {
-			return ChoiceFromLMSNeeded{}
-		}
-		return choice
-	}
-}
-
-func GetCoursesFromLms(lms *client.LMSCLient) tea.Cmd {
-	return func() tea.Msg {
-		courses, err := lms.GetCoursesFromLMS()
-		if err != nil {
-			return err
-		}
-		return courses
-	}
-}
-
 func (m Model) Init() tea.Cmd {
 	return nil
 }
+
+type Load struct{}
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
@@ -68,6 +52,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter", "space":
 			if m.focus == len(m.AllCourses) {
 				// TODO:  Handle selected values
+				chosen := []client.Course{}
+				for i := range m.Selected {
+					chosen = append(chosen, m.AllCourses[i])
+				}
+				m.Chosen = chosen
+				return m, load // TODO: also do writing choice,cheching choice from file and fetching attendance
 			} else {
 				if _, ok := m.Selected[m.focus]; ok {
 					delete(m.Selected, m.focus)

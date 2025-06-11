@@ -29,10 +29,10 @@ var (
 )
 
 type LMSCLient struct {
-	HttpClient *http.Client
-	Sesskey    string
-	Choices    Choices
-	IdListFile string // CourseID
+	HttpClient     *http.Client
+	Sesskey        string
+	Choices        Choices
+	RecivedChoices bool
 }
 
 // Returns a client with logged in cookies.
@@ -92,8 +92,9 @@ func NewClient(username, password string) (*LMSCLient, error) { // need to ssee 
 		return nil, ErrNoSessKey
 	}
 	lmsclient := &LMSCLient{
-		HttpClient: &client,
-		Sesskey:    string(matches[1]),
+		HttpClient:     &client,
+		Sesskey:        string(matches[1]),
+		RecivedChoices: false,
 	}
 	return lmsclient, nil
 }

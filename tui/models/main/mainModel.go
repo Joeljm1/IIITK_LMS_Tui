@@ -1,6 +1,7 @@
 package mainModel
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -57,30 +58,34 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.login, _ = teaModel.(login.Model)
 		m.isLoading = false
 		return m, cmd
-
 	case login.LoginComplete:
 		m.login.Err = nil
-	case login.Load:
+	case login.Load, courses.Load:
 		m.isLoading = true
+		return m, courses.GetAttendanceList(m.courseModel.Chosen, m.client)
 	case *client.LMSCLient:
 		log.Println("Got client")
 		m.client = msg
 		return m, courses.CheckChoiceFile(m.client)
+
 	case spinner.TickMsg:
 		var cmd tea.Cmd
 		m.sp, cmd = m.sp.Update(msg)
 		return m, cmd
+
 	case courses.ChoiceFromLMSNeeded:
 		return m, courses.GetCoursesFromLms(m.client)
 	case client.Choices:
+		m.isLoading = false
 		m.client.Choices = msg
+		m.client.RecivedChoices = true
 		m.isLoading = false
 	// update view and check attendance
 	case client.CourseList:
 		m.courseModel.AllCourses = msg
-		log.Println(msg)
 		m.isLoading = false
 		// update view to ask
+
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":
@@ -109,6 +114,13 @@ func (m model) View() string {
 	}
 	if m.login.Err != nil {
 		return m.login.View()
+	}
+	if m.client.RecivedChoices {
+		b, err := json.Marshal(m.client.Choices)
+		if err != nil {
+			panic(err)
+		}
+		return string(b)
 	}
 	if m.courseModel.AllCourses != nil {
 		return m.courseModel.View()
