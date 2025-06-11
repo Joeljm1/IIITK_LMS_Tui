@@ -51,13 +51,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.focus = min(m.focus+1, len(m.AllCourses))
 		case "enter", "space":
 			if m.focus == len(m.AllCourses) {
-				// TODO:  Handle selected values
 				chosen := []client.Course{}
 				for i := range m.Selected {
 					chosen = append(chosen, m.AllCourses[i])
 				}
 				m.Chosen = chosen
-				return m, load // TODO: also do writing choice,cheching choice from file and fetching attendance
+				return m, load
 			} else {
 				if _, ok := m.Selected[m.focus]; ok {
 					delete(m.Selected, m.focus)

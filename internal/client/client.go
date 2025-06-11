@@ -31,7 +31,7 @@ var (
 type LMSCLient struct {
 	HttpClient     *http.Client
 	Sesskey        string
-	Choices        Choices
+	Choices        *Choices // making it pointer may error later
 	RecivedChoices bool
 }
 

@@ -3,7 +3,6 @@ package mainModel
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/Joeljm1/IIITKlmsTui/internal/client"
@@ -60,11 +59,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 	case login.LoginComplete:
 		m.login.Err = nil
-	case login.Load, courses.Load:
+	case login.Load:
+		m.isLoading = true
+	case courses.Load:
 		m.isLoading = true
 		return m, courses.GetAttendanceList(m.courseModel.Chosen, m.client)
 	case *client.LMSCLient:
-		log.Println("Got client")
 		m.client = msg
 		return m, courses.CheckChoiceFile(m.client)
 
@@ -75,9 +75,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case courses.ChoiceFromLMSNeeded:
 		return m, courses.GetCoursesFromLms(m.client)
-	case client.Choices:
+	case *client.Choices:
 		m.isLoading = false
-		m.client.Choices = msg
+		m.client.Choices = msg // make pointer check for error later
 		m.client.RecivedChoices = true
 		m.isLoading = false
 	// update view and check attendance
@@ -116,7 +116,7 @@ func (m model) View() string {
 		return m.login.View()
 	}
 	if m.client.RecivedChoices {
-		b, err := json.Marshal(m.client.Choices)
+		b, err := json.Marshal(m.client.Choices.AttendanceId)
 		if err != nil {
 			panic(err)
 		}
