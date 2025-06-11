@@ -100,3 +100,12 @@ func (m Model) validateDetails(username, password string) tea.Cmd {
 func (m Model) load() tea.Msg {
 	return Load(struct{}{})
 }
+
+// panics
+func (m Model) loginWithCLient() tea.Msg {
+	client, err := client.NewClient(m.Username, m.Psswd)
+	if err != nil {
+		return err // should be correct
+	}
+	return client
+}

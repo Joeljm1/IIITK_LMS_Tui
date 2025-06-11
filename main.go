@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	mainModel "github.com/Joeljm1/IIITKlmsTui/tui/models/main"
@@ -15,6 +16,7 @@ func main() {
 		os.Exit(1)
 	}
 	defer f.Close()
+	log.SetOutput(f)
 	p := tea.NewProgram(mainModel.InitialModel(), tea.WithAltScreen())
 	if _, err = p.Run(); err != nil {
 		f.WriteString(err.Error())

@@ -33,29 +33,7 @@ type LMSCLient struct {
 	Sesskey    string
 	Choices    Choices
 	IdListFile string // CourseID
-	ChoiceFile string // choices and their attendance id
 }
-
-type Choices struct {
-	AllChoices   CourseList        `json:"allChoices"`
-	AttendanceId map[string]string `json:"attendanceId"`
-}
-
-type (
-	Course struct {
-		Id             int    `json:"id"`
-		Fullname       string `json:"fullname"`
-		Shortname      string `json:"shortname"`
-		Coursecategory string `json:"coursecategory"`
-	}
-	CourseDetails struct {
-		Error bool `json:"error"`
-		Data  struct {
-			Courses []Course `json:"courses"`
-		} `json:"data"`
-	}
-	CourseList []Course
-)
 
 // Returns a client with logged in cookies.
 // ErrIncorrectCredentials is returned if username or password

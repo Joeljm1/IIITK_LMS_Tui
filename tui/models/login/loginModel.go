@@ -1,8 +1,6 @@
 package login
 
 import (
-	"io"
-	"os"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textinput"
@@ -18,7 +16,6 @@ type Model struct {
 	psswdInp      textinput.Model
 	focus         int
 	validationErr error
-	W             io.Writer // for debugging
 	width         int
 	height        int
 }
@@ -69,10 +66,6 @@ func InitialModel() Model {
 	t2.Placeholder = "Password"
 	t1.Cursor.SetMode(0)
 	t2.Blur()
-	f, err := os.OpenFile("./debug.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
-	if err != nil {
-		panic(err)
-	}
 	return Model{
 		Username:      "",
 		Psswd:         "",
@@ -81,7 +74,6 @@ func InitialModel() Model {
 		psswdInp:      t2,
 		focus:         0,
 		validationErr: nil,
-		W:             f,
 	}
 }
 
@@ -97,12 +89,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case UName:
 		m.Username = string(msg)
 		if m.Psswd != "" {
-			return m, m.LoginComplete
+			return m, tea.Batch(m.LoginComplete, m.loginWithCLient)
 		}
 	case Psswd:
 		m.Psswd = string(msg)
 		if m.Username != "" {
-			return m, m.LoginComplete
+			return m, tea.Batch(m.LoginComplete, m.loginWithCLient)
 		}
 	case LoginErr: // no details in keyring
 		m.Err = msg.e
