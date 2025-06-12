@@ -23,6 +23,11 @@ func writeToFile(filename string, val any) error {
 	return err
 }
 
+func DeleteCoursesFile() error {
+	err := os.Remove(ChoiceFile)
+	return err
+}
+
 func (lmsCLient *LMSCLient) ChoicesInFile() (*Choices, error) {
 	b, err := os.ReadFile(ChoiceFile)
 	if err != nil {

@@ -70,7 +70,7 @@ func (m Model) LoginComplete() tea.Msg {
 	return LoginComplete("Complete")
 }
 
-func (m Model) deleteLoginDet() error {
+func (m Model) DeleteLoginDet() error {
 	err := keyring.DeleteAll(serviceName)
 	return err
 }

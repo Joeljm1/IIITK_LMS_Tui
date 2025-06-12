@@ -3,6 +3,7 @@ package mainModel
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/Joeljm1/IIITKlmsTui/internal/client"
@@ -20,6 +21,7 @@ type model struct {
 	client      *client.LMSCLient
 	courseModel courses.Model
 	err         error
+	attendance  [][]client.Attendance // TODO: Put it seperate model for viewing later
 }
 
 func InitialModel() model {
@@ -79,18 +81,25 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.isLoading = false
 		m.client.Choices = msg // make pointer check for error later
 		m.client.RecivedChoices = true
-		m.isLoading = false
-	// update view and check attendance
+		m.isLoading = true //?????????
+		return m, courses.GetAllAttendance(m.client)
 	case client.CourseList:
 		m.courseModel.AllCourses = msg
 		m.isLoading = false
-		// update view to ask
+	case [][]client.Attendance:
+		m.isLoading = false
+		m.attendance = msg
 
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":
 			return m, tea.Quit
+		case "ctrl+d":
+			m.login.DeleteLoginDet() // Handle err??
+			client.DeleteCoursesFile()
+			return m, tea.Quit
 		}
+
 		if m.login.Err != nil {
 			teaModel, cmd := m.login.Update(msg)
 			m.login, _ = teaModel.(login.Model)
@@ -115,11 +124,12 @@ func (m model) View() string {
 	if m.login.Err != nil {
 		return m.login.View()
 	}
-	if m.client.RecivedChoices {
-		b, err := json.Marshal(m.client.Choices.AttendanceId)
+	if m.attendance != nil {
+		b, err := json.Marshal(m.attendance)
 		if err != nil {
 			panic(err)
 		}
+		log.Println(string(b))
 		return string(b)
 	}
 	if m.courseModel.AllCourses != nil {

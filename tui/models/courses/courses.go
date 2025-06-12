@@ -46,3 +46,13 @@ func GetAttendanceList(courseList []client.Course, lms *client.LMSCLient) tea.Cm
 		return choice
 	}
 }
+
+func GetAllAttendance(lms *client.LMSCLient) tea.Cmd { // TODO: test if putting attendance detail outside the return matters
+	return func() tea.Msg {
+		attend, err := lms.AllAttendance()
+		if err != nil {
+			return err
+		}
+		return attend
+	}
+}
