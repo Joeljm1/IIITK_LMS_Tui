@@ -124,6 +124,7 @@ func (lmsClient *LMSCLient) AllAttendance() ([][]Attendance, error) {
 			}
 			mut.Lock()
 			allAttendance = append(allAttendance, attend)
+			mut.Unlock()
 			return nil
 		})
 	}
