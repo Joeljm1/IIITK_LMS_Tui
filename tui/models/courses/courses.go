@@ -7,8 +7,14 @@ import (
 	"strings"
 
 	"github.com/Joeljm1/IIITKlmsTui/internal/client"
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+)
+
+var (
+	SubmitKey = key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "Submit Courses"))
+	SelectKey = key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "Select Course"))
 )
 
 var (

@@ -8,6 +8,7 @@ import (
 	"github.com/Joeljm1/IIITKlmsTui/internal/client"
 	"github.com/Joeljm1/IIITKlmsTui/tui/models/courses"
 	"github.com/Joeljm1/IIITKlmsTui/tui/models/login"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
@@ -109,6 +110,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		h, v := courses.DocStyle.GetFrameSize()
 		m.courseModel.List = list.New(l, list.NewDefaultDelegate(), m.width-h, m.height-v)
+		m.courseModel.List.AdditionalShortHelpKeys = func() []key.Binding {
+			return []key.Binding{courses.SubmitKey, courses.SelectKey}
+		}
+		m.courseModel.List.AdditionalFullHelpKeys = func() []key.Binding {
+			return []key.Binding{courses.SubmitKey, courses.SelectKey}
+		}
+
 		m.courseModel.List.SetFilteringEnabled(false) // dont know why by filter does not work so disabled it
 		m.isLoading = false
 	case [][]client.Attendance:
