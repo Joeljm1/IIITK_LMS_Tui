@@ -3,25 +3,26 @@ package mainModel
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/Joeljm1/IIITKlmsTui/internal/client"
 	"github.com/Joeljm1/IIITKlmsTui/tui/models/courses"
 	"github.com/Joeljm1/IIITKlmsTui/tui/models/login"
+	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
 type model struct {
-	sp          spinner.Model
-	login       login.Model
-	isLoading   bool
-	client      *client.LMSCLient
-	courseModel courses.Model
-	err         error
-	attendance  [][]client.Attendance // TODO: Put it seperate model for viewing later
+	height, width int
+	sp            spinner.Model
+	login         login.Model
+	isLoading     bool
+	client        *client.LMSCLient
+	courseModel   courses.Model
+	err           error
+	attendance    [][]client.Attendance // TODO: Put it seperate model for viewing later with course name
 }
 
 func InitialModel() model {
@@ -49,11 +50,23 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case error:
 		m.err = msg
-	case login.UName, login.Psswd, login.LoginValidErr, login.Valid, tea.WindowSizeMsg:
+	case login.UName, login.Psswd, login.LoginValidErr, login.Valid:
 		// m.login,cmd=m.Update(msg) do it with type inference
 		teaModel, cmd := m.login.Update(msg)
 		m.login, _ = teaModel.(login.Model)
 		return m, cmd
+	case tea.WindowSizeMsg:
+		m.height = msg.Height
+		m.width = msg.Width
+		if !m.courseModel.RecievedCourses {
+			teaModel, cmd := m.login.Update(msg)
+			m.login = teaModel.(login.Model)
+			return m, cmd
+		} else {
+			courseModel, cmd := m.courseModel.Update(msg)
+			m.courseModel = courseModel.(courses.Model)
+			return m, cmd
+		}
 	case login.LoginErr:
 		teaModel, cmd := m.login.Update(msg)
 		m.login, _ = teaModel.(login.Model)
@@ -84,7 +97,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.isLoading = true //?????????
 		return m, courses.GetAllAttendance(m.client)
 	case client.CourseList:
-		m.courseModel.AllCourses = msg
+		m.courseModel.RecievedCourses = true
+		var l []list.Item
+		for i := range msg {
+			it := courses.CourseItem(msg[i])
+			l = append(l, it)
+		}
+		h, v := courses.DocStyle.GetFrameSize()
+		m.courseModel.List = list.New(l, list.NewDefaultDelegate(), m.width-h, m.height-v)
+		m.courseModel.List.SetFilteringEnabled(false) // dont know why by filter does not work so disabled it
 		m.isLoading = false
 	case [][]client.Attendance:
 		m.isLoading = false
@@ -105,7 +126,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.login, _ = teaModel.(login.Model)
 			return m, cmd
 		}
-		if m.courseModel.AllCourses != nil {
+		if m.courseModel.RecievedCourses {
 			teaModel, cmd := m.courseModel.Update(msg)
 			m.courseModel, _ = teaModel.(courses.Model)
 			return m, cmd
@@ -125,14 +146,13 @@ func (m model) View() string {
 		return m.login.View()
 	}
 	if m.attendance != nil {
-		b, err := json.Marshal(m.attendance)
+		b, err := json.MarshalIndent(m.attendance, "", "\t")
 		if err != nil {
 			panic(err)
 		}
-		log.Println(string(b))
 		return string(b)
 	}
-	if m.courseModel.AllCourses != nil {
+	if m.courseModel.RecievedCourses {
 		return m.courseModel.View()
 	}
 	return fmt.Sprintf("username: %v\n password: %v", m.login.Username, m.login.Psswd)

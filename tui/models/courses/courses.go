@@ -2,11 +2,27 @@ package courses
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
+	"strings"
 
 	"github.com/Joeljm1/IIITKlmsTui/internal/client"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
+
+var (
+	DocStyle = lipgloss.NewStyle().Margin(1, 2)
+	Selected = make(map[int]struct{})
+
+	focusedStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#c20000"))
+	blurredStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+
+	blurredButton  = blurredStyle.Render(" [ Submit] ")
+	focussedButton = focusedStyle.Foreground(lipgloss.Color("#17bd05")).Render(" [ Submit] ")
+)
+
+type ChoiceFromLMSNeeded struct{}
 
 func CheckChoiceFile(lms *client.LMSCLient) tea.Cmd {
 	return func() tea.Msg {
@@ -55,4 +71,22 @@ func GetAllAttendance(lms *client.LMSCLient) tea.Cmd { // TODO: test if putting 
 		}
 		return attend
 	}
+}
+
+type CourseItem client.Course
+
+func (item CourseItem) Title() string {
+	sn := strings.Trim(item.Shortname, " ")
+	isSelected := " "
+	if _, ok := Selected[item.Id]; ok {
+		isSelected = "✅"
+	}
+	return fmt.Sprintf("[ %v ] %v", isSelected, sn)
+}
+func (item CourseItem) Description() string { return item.Fullname }
+func (item CourseItem) FilterValue() string {
+	if strings.Trim(item.Fullname, " ") == "" {
+		panic("WTF")
+	}
+	return strings.ToLower(item.Fullname)
 }
