@@ -50,8 +50,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case error:
 		m.err = msg
-	case login.UName, login.Psswd, login.LoginValidErr, login.Valid:
-		// m.login,cmd=m.Update(msg) do it with type inference
+	case login.UName, login.Psswd, login.Valid:
+		teaModel, cmd := m.login.Update(msg)
+		m.login, _ = teaModel.(login.Model)
+		return m, cmd
+	case login.LoginValidErr:
+		m.isLoading = false
 		teaModel, cmd := m.login.Update(msg)
 		m.login, _ = teaModel.(login.Model)
 		return m, cmd

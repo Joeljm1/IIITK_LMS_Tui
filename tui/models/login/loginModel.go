@@ -18,6 +18,7 @@ type Model struct {
 	validationErr error
 	width         int
 	height        int
+	moreHelp      bool
 }
 
 type (
@@ -52,6 +53,9 @@ var (
 	topBox         = lipgloss.NewStyle().Align(lipgloss.Center).Background(lipgloss.Color("#03005e"))
 	loginBox       = lipgloss.NewStyle().Border(loginBoxBorder, true).
 			BorderForeground(lipgloss.Color("#05d7e6")).Align(lipgloss.Center).Background(lipgloss.Color("#000000"))
+	helpBox = lipgloss.NewStyle().Border(lipgloss.NormalBorder(), true, false, false, false).
+		Background(lipgloss.Color("#03005e"))
+	/*Foreground(lipgloss.Color("#B1B1B1")).*/
 )
 
 func InitialModel() Model {
@@ -74,6 +78,7 @@ func InitialModel() Model {
 		psswdInp:      t2,
 		focus:         0,
 		validationErr: nil,
+		moreHelp:      false,
 	}
 }
 
@@ -107,6 +112,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c":
 			return m, tea.Quit
+		case "?":
+			m.moreHelp = !m.moreHelp
 		case "up", "ctrl+shift+tab", "down", "tab", "enter":
 			val := msg.String()
 			if m.focus == 2 && val == "enter" {
@@ -147,8 +154,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		var cmd1 tea.Cmd
 		var cmd2 tea.Cmd
-		m.unameInp, cmd1 = m.unameInp.Update(msg)
-		m.psswdInp, cmd2 = m.psswdInp.Update(msg)
+		if msg.String() != "?" {
+			m.unameInp, cmd1 = m.unameInp.Update(msg)
+			m.psswdInp, cmd2 = m.psswdInp.Update(msg)
+		}
 		return m, tea.Batch(cmd1, cmd2)
 	}
 	return m, nil
@@ -174,9 +183,22 @@ func (m Model) View() string {
 			sb.WriteRune('\n')
 			sb.WriteString(errMsgStyle.Render("Your username or password is invalid"))
 		}
-		topBoxStyle := topBox.Width(m.width).Height(m.height).Padding(m.height/4, 0, m.height/4-2, 0)
-		loginBoxStyle := loginBox.Width(m.width/2).Height(m.height/2).Padding(m.height/4, 0)
-		return topBoxStyle.Render(loginBoxStyle.Render(sb.String()))
+		var helpView string
+		if m.moreHelp {
+			helpView = " ↑      move up      ←     move left\n ↓      move down    →     move right\n ctrl+c quit         enter submit (on submit button)"
+		} else {
+			helpView = "↑ move up      ↓ move down      ctrl+c quit      ? help"
+		}
+		var red int
+		if m.moreHelp {
+			red = 3
+		} else {
+			red = 1
+		}
+		topBoxStyle := topBox.Width(m.width).Height(m.height-red).Padding(m.height/4, 0, m.height/4-2-red, 0)
+		loginBoxStyle := loginBox.Width(m.width/2).Height(m.height/2).Padding(m.height/8, 0)
+		helpBoxStyle := helpBox.Width(m.width)
+		return topBoxStyle.Render(loginBoxStyle.Render(sb.String())) + helpBoxStyle.Render(helpView)
 	}
 	return ""
 }
