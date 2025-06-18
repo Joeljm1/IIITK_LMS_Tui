@@ -15,6 +15,7 @@ import (
 var (
 	SubmitKey = key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "Submit Courses"))
 	SelectKey = key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "Select Course"))
+	LogoutKey = key.NewBinding(key.WithKeys("ctrl+d"), key.WithHelp("ctrl+d", "Logout"))
 )
 
 var (

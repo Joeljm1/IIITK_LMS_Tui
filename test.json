@@ -1,0 +1,68 @@
+{
+  "allChoices": [
+    {
+      "id": 69,
+      "fullname": "ICS224 Computer Networks",
+      "shortname": "ICS224",
+      "coursecategory": "BATCH I"
+    },
+    {
+      "id": 60,
+      "fullname": "ICS221 Theory of Computation",
+      "shortname": "ICS221",
+      "coursecategory": "BATCH I"
+    },
+    {
+      "id": 63,
+      "fullname": "ICS222 Object-Oriented Analysis and Design",
+      "shortname": "ICS222",
+      "coursecategory": "BATCH I"
+    },
+    {
+      "id": 66,
+      "fullname": "ICS223 Compiler Design",
+      "shortname": "ICS223",
+      "coursecategory": "BATCH I"
+    },
+    {
+      "id": 72,
+      "fullname": "IMA221 Differential Equations and Transforms",
+      "shortname": "IMA221",
+      "coursecategory": "BATCH I"
+    },
+    {
+      "id": 81,
+      "fullname": "IHS221 Fundamentals of Economics",
+      "shortname": "IHS221",
+      "coursecategory": "BATCH I"
+    },
+    {
+      "id": 78,
+      "fullname": "IHS222 Principles of Management",
+      "shortname": "IHS222",
+      "coursecategory": "BATCH I"
+    },
+    {
+      "id": 75,
+      "fullname": "ICS225 Data Structures III",
+      "shortname": "ICS225",
+      "coursecategory": "BATCH I"
+    },
+    {
+      "id": 19,
+      "fullname": "IHS 121 PERSONALITY DEVELOPMENT",
+      "shortname": "  IHS 121 ",
+      "coursecategory": "BATCH I"
+    }
+  ],
+  "attendanceId": {
+    "ICS221 Theory of Computation": "2396",
+    "ICS222 Object-Oriented Analysis and Design": "1941",
+    "ICS223 Compiler Design": "2068",
+    "ICS224 Computer Networks": "1944",
+    "ICS225 Data Structures III": "2034",
+    "IHS221 Fundamentals of Economics": "2116",
+    "IHS222 Principles of Management": "2251",
+    "IMA221 Differential Equations and Transforms": "1948"
+  }
+}

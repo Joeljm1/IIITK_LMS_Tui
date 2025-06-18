@@ -111,13 +111,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		h, v := courses.DocStyle.GetFrameSize()
 		m.courseModel.List = list.New(l, list.NewDefaultDelegate(), m.width-h, m.height-v)
 		m.courseModel.List.AdditionalShortHelpKeys = func() []key.Binding {
-			return []key.Binding{courses.SubmitKey, courses.SelectKey}
+			return []key.Binding{courses.SubmitKey, courses.SelectKey, courses.LogoutKey}
 		}
 		m.courseModel.List.AdditionalFullHelpKeys = func() []key.Binding {
-			return []key.Binding{courses.SubmitKey, courses.SelectKey}
+			return []key.Binding{courses.SubmitKey, courses.SelectKey, courses.LogoutKey}
 		}
 
-		m.courseModel.List.SetFilteringEnabled(false) // dont know why by filter does not work so disabled it
+		// m.courseModel.List.SetFilteringEnabled(false) // dont know why by filter does not work so disabled it
 		m.isLoading = false
 	case [][]client.Attendance:
 		m.isLoading = false
