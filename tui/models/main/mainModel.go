@@ -144,7 +144,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, cmd
 		}
 
-	default:
+	default: // any other msg from other models passes here
 		cmds := make([]tea.Cmd, 2)
 		var teaModel tea.Model
 		if m.login.Err != nil {

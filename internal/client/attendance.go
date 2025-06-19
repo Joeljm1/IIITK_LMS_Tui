@@ -5,6 +5,7 @@ import (
 	"io"
 	"regexp"
 	"sync"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"golang.org/x/sync/errgroup"
@@ -80,9 +81,39 @@ type OverallAttendance struct { // TODO: Need to combine this too with attendanc
 	Percentage string
 }
 
+type AttendanceDetails struct {
+	Attendances []Attendance
+	Today       []Attendance
+	Overall     OverallAttendance
+}
+
+type AllAttendance []*AttendanceDetails
+
 const attendanceDetailsURL = "https://lmsug23.iiitkottayam.ac.in/mod/attendance/view.php?id=%v&view=5"
 
-func (lmsCLient *LMSCLient) GetAttendance(id string) ([]Attendance, error) {
+func todayDate() string {
+	curr := time.Now()
+	date := curr.Format("Mon 02 Jan 2006")
+	return date
+}
+
+func getOverallDetails(doc *goquery.Document) OverallAttendance {
+	oa := OverallAttendance{}
+	doc.Find("table.attlist .c1").Each(func(i int, s *goquery.Selection) {
+		switch i {
+		case 0:
+			oa.Total = s.Text()
+		case 1:
+			oa.Points = s.Text()
+		case 2:
+			oa.Percentage = s.Text()
+		}
+	})
+	return oa
+}
+
+func (lmsCLient *LMSCLient) GetAttendanceDetails(id string) (*AttendanceDetails, error) {
+	today := todayDate()
 	URLWithId := fmt.Sprintf(attendanceDetailsURL, id)
 	resp, err := lmsCLient.HttpClient.Get(URLWithId)
 	if err != nil {
@@ -93,7 +124,9 @@ func (lmsCLient *LMSCLient) GetAttendance(id string) ([]Attendance, error) {
 	if err != nil {
 		return nil, err
 	}
-	ParsedTable := []Attendance{}
+	ParsedTable := []Attendance{} // All attendance
+	TodayAttend := []Attendance{} // Todays attendance
+	AttendanceDet := &AttendanceDetails{}
 	doc.Find(".generaltable.attwidth.boxaligncenter > tbody > tr").Each(func(i int, s *goquery.Selection) {
 		attRow := Attendance{}
 		s.Find(".c0>nobr").Each(func(i int, s *goquery.Selection) {
@@ -106,19 +139,25 @@ func (lmsCLient *LMSCLient) GetAttendance(id string) ([]Attendance, error) {
 		})
 		attRow.Desc = s.Find(".c1>div").First().Text()
 		attRow.Status = s.Find(".c2").First().Text()
+		if attRow.Date == today {
+			TodayAttend = append(TodayAttend, attRow)
+		}
 		ParsedTable = append(ParsedTable, attRow)
 	})
-	return ParsedTable, nil
+	AttendanceDet.Attendances = ParsedTable
+	AttendanceDet.Today = TodayAttend
+	AttendanceDet.Overall = getOverallDetails(doc)
+	return AttendanceDet, nil
 }
 
 // Returns every sing attence of all courses
-func (lmsClient *LMSCLient) AllAttendance() ([][]Attendance, error) { // TODO: enable sending course name to with attendance
-	var allAttendance [][]Attendance
+func (lmsClient *LMSCLient) AllAttendance() (AllAttendance, error) { // TODO: enable sending course name to with attendance
+	var allAttendance AllAttendance
 	var mut sync.Mutex
 	var g errgroup.Group
 	for _, id := range lmsClient.Choices.AttendanceId {
 		g.Go(func() error {
-			attend, err := lmsClient.GetAttendance(id)
+			attend, err := lmsClient.GetAttendanceDetails(id)
 			if err != nil {
 				return err
 			}
