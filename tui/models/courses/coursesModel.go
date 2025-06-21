@@ -43,7 +43,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				Selected[selectedCourse.Id] = struct{}{}
 			}
-		case "ctrl+s":
+		case "ctrl+s", "ctrl+v":
 			chosen := []client.Course{}
 			for _, item := range m.List.Items() {
 				course := item.(CourseItem)

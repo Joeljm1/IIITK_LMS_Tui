@@ -23,7 +23,7 @@ type model struct {
 	client        *client.LMSCLient
 	courseModel   courses.Model
 	err           error
-	attendance    [][]client.Attendance // TODO: Put it seperate model for viewing later with course name
+	attendance    client.AllAttendance
 }
 
 func InitialModel() model {
@@ -119,7 +119,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// m.courseModel.List.SetFilteringEnabled(false) // dont know why by filter does not work so disabled it
 		m.isLoading = false
-	case [][]client.Attendance:
+	case client.AllAttendance:
 		m.isLoading = false
 		m.attendance = msg
 
