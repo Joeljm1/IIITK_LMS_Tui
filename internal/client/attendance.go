@@ -82,6 +82,7 @@ type OverallAttendance struct { // TODO: Need to combine this too with attendanc
 }
 
 type AttendanceDetails struct {
+	CourseName  string
 	Attendances []Attendance
 	Today       []Attendance
 	Overall     OverallAttendance
@@ -144,6 +145,11 @@ func (lmsCLient *LMSCLient) GetAttendanceDetails(id string) (*AttendanceDetails,
 		}
 		ParsedTable = append(ParsedTable, attRow)
 	})
+	for name, aId := range lmsCLient.Choices.AttendanceId {
+		if aId == id {
+			AttendanceDet.CourseName = name
+		}
+	}
 	AttendanceDet.Attendances = ParsedTable
 	AttendanceDet.Today = TodayAttend
 	AttendanceDet.Overall = getOverallDetails(doc)

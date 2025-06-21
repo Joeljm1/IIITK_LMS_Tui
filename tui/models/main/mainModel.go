@@ -1,16 +1,17 @@
 package mainModel
 
 import (
-	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/Joeljm1/IIITKlmsTui/internal/client"
+	"github.com/Joeljm1/IIITKlmsTui/tui/models/content"
 	"github.com/Joeljm1/IIITKlmsTui/tui/models/courses"
 	"github.com/Joeljm1/IIITKlmsTui/tui/models/login"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
+	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -22,8 +23,9 @@ type model struct {
 	isLoading     bool
 	client        *client.LMSCLient
 	courseModel   courses.Model
+	contentModel  content.Model
 	err           error
-	attendance    client.AllAttendance
+	sentWidth     bool // to give width to table
 }
 
 func InitialModel() model {
@@ -40,6 +42,7 @@ func InitialModel() model {
 		courseModel: courses.InitialModel(),
 		isLoading:   true,
 		err:         nil,
+		sentWidth:   false,
 	}
 }
 
@@ -63,13 +66,20 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.height = msg.Height
 		m.width = msg.Width
+		if !m.sentWidth {
+			m.contentModel = content.InitialModel(m.width/2, m.height)
+		}
 		if !m.courseModel.RecievedCourses {
 			teaModel, cmd := m.login.Update(msg)
 			m.login = teaModel.(login.Model)
 			return m, cmd
-		} else {
+		} else if m.courseModel.RecievedCourses {
 			courseModel, cmd := m.courseModel.Update(msg)
 			m.courseModel = courseModel.(courses.Model)
+			return m, cmd
+		} else if m.contentModel.Attendance.Attendance != nil {
+			contentModel, cmd := m.contentModel.Update(msg)
+			m.contentModel = contentModel.(content.Model)
 			return m, cmd
 		}
 	case login.LoginErr:
@@ -121,7 +131,24 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.isLoading = false
 	case client.AllAttendance:
 		m.isLoading = false
-		m.attendance = msg
+		m.contentModel.Attendance.Attendance = msg
+		var l []list.Item
+		var rows []table.Row
+		overall := fmt.Sprintf("Total: %v\nPoints: %v\nPercentage:%v", msg[0].Overall.Total, msg[0].Overall.Points, msg[0].Overall.Percentage)
+		for _, attend := range msg[0].Attendances {
+			row := table.Row{
+				attend.Date,
+				attend.Time,
+				attend.Status,
+			}
+			rows = append(rows, row)
+		}
+		m.contentModel.Attendance.OverAll = overall
+		m.contentModel.Attendance.DetailedTable.SetRows(rows)
+		for _, attendDet := range msg {
+			l = append(l, content.CourseNameItem(attendDet.CourseName))
+		}
+		m.contentModel.Attendance.List = list.New(l, list.NewDefaultDelegate(), m.width/3, m.height)
 
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -137,6 +164,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			teaModel, cmd := m.login.Update(msg)
 			m.login, _ = teaModel.(login.Model)
 			return m, cmd
+		}
+		if m.contentModel.Attendance.Attendance != nil {
+			teaModel, cmd := m.contentModel.Update(msg)
+			m.contentModel, _ = teaModel.(content.Model)
+			return m, cmd
+
 		}
 		if m.courseModel.RecievedCourses {
 			teaModel, cmd := m.courseModel.Update(msg)
@@ -170,12 +203,8 @@ func (m model) View() string {
 	if m.login.Err != nil {
 		return m.login.View()
 	}
-	if m.attendance != nil {
-		b, err := json.MarshalIndent(m.attendance, "", "\t")
-		if err != nil {
-			panic(err)
-		}
-		return string(b)
+	if m.contentModel.Attendance.Attendance != nil {
+		return m.contentModel.View()
 	}
 	if m.courseModel.RecievedCourses {
 		return m.courseModel.View()
