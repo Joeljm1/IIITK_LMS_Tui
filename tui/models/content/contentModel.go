@@ -51,7 +51,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.Attendance.List.SetSize(msg.Width/3, msg.Height)
-		m.Attendance.DetailedTable.SetWidth(msg.Width / 2)
+
+		m.Attendance.DetailedTable.SetColumns([]table.Column{
+			{Title: "Date", Width: msg.Width / 9},
+			{Title: "Time", Width: msg.Width / 9},
+			{Title: "Status", Width: msg.Width / 9},
+		})
 		return m, nil
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -112,5 +117,5 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	return lipgloss.JoinHorizontal(lipgloss.Top, m.Attendance.List.View(), m.Attendance.DetailedTable.View(), m.Attendance.OverAll)
+	return lipgloss.JoinHorizontal(lipgloss.Top, m.Attendance.List.View(), lipgloss.NewStyle().Border(lipgloss.NormalBorder(), true).Render(m.Attendance.DetailedTable.View()), m.Attendance.OverAll)
 }
