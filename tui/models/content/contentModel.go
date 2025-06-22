@@ -47,21 +47,18 @@ func InitialModel(width, height int) Model {
 	}
 }
 
-func (m Model) View() string {
-	return lipgloss.JoinHorizontal(lipgloss.Top, m.Attendance.List.View(), m.Attendance.DetailedTable.View(), m.Attendance.OverAll)
-}
-
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.Attendance.List.SetSize(msg.Width/3, msg.Height)
+		m.Attendance.DetailedTable.SetWidth(msg.Width / 2)
 		return m, nil
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "left":
+		case "left", "h":
 			m.Attendance.focusTable = false
 			m.Attendance.DetailedTable.Blur()
-		case "right", "enter":
+		case "right", "enter", "l":
 			m.Attendance.focusTable = true
 			m.Attendance.DetailedTable.Focus()
 		case "down", "j":
@@ -112,4 +109,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Attendance.DetailedTable, cmd2 = m.Attendance.DetailedTable.Update(msg)
 	}
 	return m, tea.Batch(cmd1, cmd2)
+}
+
+func (m Model) View() string {
+	return lipgloss.JoinHorizontal(lipgloss.Top, m.Attendance.List.View(), m.Attendance.DetailedTable.View(), m.Attendance.OverAll)
 }

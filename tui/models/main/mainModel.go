@@ -67,19 +67,20 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 		m.width = msg.Width
 		if !m.sentWidth {
-			m.contentModel = content.InitialModel(m.width/2, m.height)
+			m.contentModel = content.InitialModel(m.width/3, m.height)
+			m.sentWidth = true
 		}
-		if !m.courseModel.RecievedCourses {
+		if m.contentModel.Attendance.Attendance != nil {
+			contentModel, cmd := m.contentModel.Update(msg)
+			m.contentModel = contentModel.(content.Model)
+			return m, cmd
+		} else if !m.courseModel.RecievedCourses {
 			teaModel, cmd := m.login.Update(msg)
 			m.login = teaModel.(login.Model)
 			return m, cmd
 		} else if m.courseModel.RecievedCourses {
 			courseModel, cmd := m.courseModel.Update(msg)
 			m.courseModel = courseModel.(courses.Model)
-			return m, cmd
-		} else if m.contentModel.Attendance.Attendance != nil {
-			contentModel, cmd := m.contentModel.Update(msg)
-			m.contentModel = contentModel.(content.Model)
 			return m, cmd
 		}
 	case login.LoginErr:
@@ -107,7 +108,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, courses.GetCoursesFromLms(m.client)
 	case *client.Choices:
 		m.isLoading = false
-		m.client.Choices = msg // make pointer check for error later
+		m.client.Choices = msg // make pointer check if error later
 		m.client.RecivedChoices = true
 		m.isLoading = true //?????????
 		return m, courses.GetAllAttendance(m.client)
@@ -127,7 +128,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return []key.Binding{courses.SubmitKey, courses.SelectKey, courses.LogoutKey}
 		}
 
-		// m.courseModel.List.SetFilteringEnabled(false) // dont know why by filter does not work so disabled it
 		m.isLoading = false
 	case client.AllAttendance:
 		m.isLoading = false
@@ -194,8 +194,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
+	errStyle := lipgloss.NewStyle().Width(m.width).Height(m.height).Align(lipgloss.Center).Padding(m.height/2, 0).Foreground(lipgloss.Color("#f70000"))
 	if m.err != nil {
-		return m.err.Error()
+		return errStyle.Render(m.err.Error())
 	}
 	if m.isLoading {
 		return m.sp.View()
@@ -209,5 +210,5 @@ func (m model) View() string {
 	if m.courseModel.RecievedCourses {
 		return m.courseModel.View()
 	}
-	return fmt.Sprintf("username: %v\n password: %v", m.login.Username, m.login.Psswd)
+	return errStyle.Render("An Error has occured.\nPlease press ctrl+d to logout and reset")
 }
