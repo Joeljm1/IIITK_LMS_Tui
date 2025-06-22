@@ -12,7 +12,7 @@ import (
 )
 
 type Model struct {
-	tabNo      int
+	tabView    views
 	Attendance CourseAttendance
 	Today      TodayAttendance
 	// TODO: TODAY table
@@ -30,6 +30,13 @@ type CourseAttendance struct {
 type TodayAttendance struct {
 	Table table.Model
 }
+
+type views int
+
+const (
+	todayView views = iota + 1
+	tableView
+)
 
 func (m Model) Init() tea.Cmd {
 	return nil
@@ -72,7 +79,7 @@ func InitialModel(width, height int) Model {
 	todayTable.Focus()
 	// newTable.Blur()
 	return Model{
-		tabNo: 1,
+		tabView: 1,
 		Attendance: CourseAttendance{
 			Attendance:    nil,
 			DetailedTable: newTable,
@@ -114,7 +121,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				Bold(false)
 			m.Attendance.DetailedTable.SetStyles(s)
 		case "right", "enter", "l":
-			if m.tabNo == 2 {
+			if m.tabView == tableView {
 				m.Attendance.focusTable = true
 				m.Attendance.DetailedTable.Focus()
 				s := table.DefaultStyles()
@@ -169,19 +176,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		case "1":
-			m.tabNo = 1
+			m.tabView = todayView
 		case "2":
-			m.tabNo = 2
+			m.tabView = tableView
 		}
 	}
 	var cmd1, cmd2, cmd3 tea.Cmd
-	if m.tabNo == 2 {
+	if m.tabView == tableView {
 		if !m.Attendance.focusTable {
 			m.Attendance.List, cmd1 = m.Attendance.List.Update(msg)
 		} else {
 			m.Attendance.DetailedTable, cmd2 = m.Attendance.DetailedTable.Update(msg)
 		}
-	} else if m.tabNo == 1 {
+	} else if m.tabView == todayView {
 		log.Println("Accept")
 		m.Today.Table, cmd3 = m.Today.Table.Update(msg)
 	}
@@ -197,10 +204,10 @@ func (ta TodayAttendance) View() string {
 }
 
 func (m Model) View() string {
-	switch m.tabNo {
-	case 1:
+	switch m.tabView {
+	case todayView:
 		return m.Today.View()
-	case 2:
+	case tableView:
 		return m.Attendance.View()
 	default:
 		panic("Unexpected tab no")
