@@ -3,8 +3,8 @@ package client
 import (
 	"fmt"
 	"io"
-	"log"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -94,8 +94,15 @@ type AllAttendance []*AttendanceDetails
 const attendanceDetailsURL = "https://lmsug23.iiitkottayam.ac.in/mod/attendance/view.php?id=%v&view=5"
 
 func todayDate() string {
-	curr := time.Now()
-	date := curr.Format("Mon 2 Jan 2006")
+	return formatDate(time.Now())
+}
+
+func formatDate(t time.Time) string {
+	date := t.Format("Mon 2 Jan 2006")
+	if t.Month() == time.September { // Sept in lms instead of sep
+		sept := strings.Replace(date, "Sep", "Sept", 1)
+		return sept
+	}
 	return date
 }
 
@@ -116,7 +123,6 @@ func getOverallDetails(doc *goquery.Document) OverallAttendance {
 
 func (lmsCLient *LMSCLient) GetAttendanceDetails(id string) (*AttendanceDetails, error) {
 	today := todayDate()
-	log.Println(today)
 	URLWithId := fmt.Sprintf(attendanceDetailsURL, id)
 	resp, err := lmsCLient.HttpClient.Get(URLWithId)
 	if err != nil {
@@ -143,7 +149,6 @@ func (lmsCLient *LMSCLient) GetAttendanceDetails(id string) (*AttendanceDetails,
 		attRow.Desc = s.Find(".c1>div").First().Text()
 		attRow.Status = s.Find(".c2").First().Text()
 		if attRow.Date == today {
-			log.Println("success")
 			TodayAttend = append(TodayAttend, attRow)
 		}
 		ParsedTable = append(ParsedTable, attRow)

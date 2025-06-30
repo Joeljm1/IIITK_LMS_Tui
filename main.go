@@ -3,11 +3,20 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 
 	mainModel "github.com/Joeljm1/IIITKlmsTui/tui/models/main"
 	tea "github.com/charmbracelet/bubbletea"
 )
+
+func init() {
+	go func() {
+		log.Println("pprof: http://localhost:6060/debug/pprof/")
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
+}
 
 func main() {
 	f, err := tea.LogToFile("./log.txt", "Log: ")

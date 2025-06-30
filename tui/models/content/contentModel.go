@@ -2,7 +2,6 @@ package content
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/Joeljm1/IIITKlmsTui/internal/client"
 	"github.com/charmbracelet/bubbles/list"
@@ -15,6 +14,7 @@ type Model struct {
 	tabView    views
 	Attendance CourseAttendance
 	Today      TodayAttendance
+	topBar     string
 	// TODO: TODAY table
 }
 
@@ -42,6 +42,20 @@ func (m Model) Init() tea.Cmd {
 	return nil
 }
 
+func unselectedElementBorder() lipgloss.Border {
+	b := lipgloss.NormalBorder()
+	b.Bottom = " "
+	b.BottomLeft = "|"
+	b.BottomRight = "|"
+	return b
+}
+
+var (
+	unSelectedElementStyle = lipgloss.NewStyle().Border(lipgloss.NormalBorder(), true).Height(1).Width(10).Align(lipgloss.Center)
+	selectedElementStyle   = lipgloss.NewStyle().Border(unselectedElementBorder(), true).Height(1).Width(10).Align(lipgloss.Center)
+	remainingBarStyle      = unSelectedElementStyle // same
+)
+
 func InitialModel(width, height int) Model {
 	newTable := table.New(table.WithColumns(
 		[]table.Column{
@@ -49,7 +63,7 @@ func InitialModel(width, height int) Model {
 			{Title: "Time", Width: width / 9},
 			{Title: "Status", Width: width / 9},
 		}))
-	newTable.SetHeight(height - height/8)
+	newTable.SetHeight(height - height/8 - 1)
 	todayTable := table.New(table.WithColumns([]table.Column{
 		{
 			Title: "Course",
@@ -72,11 +86,17 @@ func InitialModel(width, height int) Model {
 		Bold(false)
 	s.Selected = s.Selected.
 		Foreground(lipgloss.Color("229")).
-		Background(lipgloss.Color("57")).
+		Background(lipgloss.Color("0")).
 		Bold(false)
 	newTable.SetStyles(s)
+	s.Selected.Background(lipgloss.Color("57"))
 	todayTable.SetStyles(s)
 	todayTable.Focus()
+	// Width =total width- width of each other box
+	todayBar := selectedElementStyle.Render("1) Today")
+	detailsBarStyle := unSelectedElementStyle.Border(lipgloss.NormalBorder(), true, false)
+	detailBar := detailsBarStyle.Render("2) Details")
+	remainingBar := remainingBarStyle.Width(width - 20).Render()
 	// newTable.Blur()
 	return Model{
 		tabView: 1,
@@ -88,6 +108,7 @@ func InitialModel(width, height int) Model {
 		Today: TodayAttendance{
 			Table: todayTable,
 		},
+		topBar: lipgloss.JoinHorizontal(lipgloss.Top, todayBar, detailBar, remainingBar),
 	}
 }
 
@@ -95,14 +116,14 @@ func InitialModel(width, height int) Model {
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		m.Attendance.List.SetSize(msg.Width/3, msg.Height)
+		m.Attendance.List.SetSize(msg.Width/3, msg.Height-1)
 
 		m.Attendance.DetailedTable.SetColumns([]table.Column{
 			{Title: "Date", Width: msg.Width / 9},
 			{Title: "Time", Width: msg.Width / 9},
 			{Title: "Status", Width: msg.Width / 9},
 		})
-		m.Attendance.DetailedTable.SetHeight(msg.Height - msg.Height/8)
+		m.Attendance.DetailedTable.SetHeight(msg.Height - msg.Height/8 - 1)
 		return m, nil
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -138,6 +159,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "down", "j":
 			if !m.Attendance.focusTable {
+				m.Attendance.DetailedTable.GotoTop()
 				if m.Attendance.Pos != len(m.Attendance.Attendance)-1 {
 					m.Attendance.Pos = m.Attendance.Pos + 1
 					var rows []table.Row
@@ -157,6 +179,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "up", "k":
 			if !m.Attendance.focusTable {
+				m.Attendance.DetailedTable.GotoTop()
 				if m.Attendance.Pos != 0 {
 					m.Attendance.Pos = m.Attendance.Pos - 1
 					var rows []table.Row
@@ -189,7 +212,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Attendance.DetailedTable, cmd2 = m.Attendance.DetailedTable.Update(msg)
 		}
 	} else if m.tabView == todayView {
-		log.Println("Accept")
 		m.Today.Table, cmd3 = m.Today.Table.Update(msg)
 	}
 	return m, tea.Batch(cmd1, cmd2, cmd3)
