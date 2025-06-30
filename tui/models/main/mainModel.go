@@ -47,7 +47,7 @@ func InitialModel() model {
 }
 
 func (m model) Init() tea.Cmd {
-	return tea.Batch(m.login.Init(), m.sp.Tick, m.courseModel.Init())
+	return tea.Batch(m.login.Init(), m.sp.Tick, m.courseModel.Init(), m.contentModel.Init())
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -154,7 +154,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		m.contentModel.Today.Table.SetRows(todayRows)
-		m.contentModel.Attendance.List = list.New(l, list.NewDefaultDelegate(), m.width/3, m.height)
+		m.contentModel.Attendance.List = list.New(l, list.NewDefaultDelegate(), m.width/3, m.height-3)
 
 	case tea.KeyMsg:
 		switch msg.String() {

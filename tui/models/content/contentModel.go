@@ -14,13 +14,14 @@ type Model struct {
 	tabView    views
 	Attendance CourseAttendance
 	Today      TodayAttendance
-	topBar     string
+	height     int
+	width      int
 	// TODO: TODAY table
 }
 
 type CourseAttendance struct {
 	Attendance    client.AllAttendance
-	List          list.Model
+	List          list.Model // not properly initialized till selected courseList is sent in AllAttendance
 	Pos           int
 	focusTable    bool
 	DetailedTable table.Model
@@ -38,23 +39,51 @@ const (
 	tableView
 )
 
-func (m Model) Init() tea.Cmd {
-	return nil
-}
-
-func unselectedElementBorder() lipgloss.Border {
+func unselectedTodayBorder() lipgloss.Border {
 	b := lipgloss.NormalBorder()
-	b.Bottom = " "
-	b.BottomLeft = "|"
-	b.BottomRight = "|"
+	b.BottomRight = "┘"
+	b.TopRight = "┬"
 	return b
 }
 
+func selectedTodayBorder() lipgloss.Border {
+	b := lipgloss.NormalBorder()
+	b.Bottom = " "
+	b.BottomLeft = "╵"
+	b.BottomRight = "└"
+	b.TopRight = "┬"
+	return b
+}
+
+func remainingBarStyle(selected views, width int) string {
+	b := lipgloss.NormalBorder()
+	b.TopLeft = "┬"
+	switch selected {
+	case todayView:
+		b.BottomLeft = "┴"
+	case tableView:
+		b.BottomLeft = "└"
+	}
+	s := lipgloss.NewStyle().Width(width).Border(b, true).Render("")
+	return s
+}
+
 var (
-	unSelectedElementStyle = lipgloss.NewStyle().Border(lipgloss.NormalBorder(), true).Height(1).Width(10).Align(lipgloss.Center)
-	selectedElementStyle   = lipgloss.NewStyle().Border(unselectedElementBorder(), true).Height(1).Width(10).Align(lipgloss.Center)
-	remainingBarStyle      = unSelectedElementStyle // same
+	todaySelectedBorder   = selectedTodayBorder()
+	todayUnselectedBorder = unselectedTodayBorder()
+	unSelectedTodayStyle  = lipgloss.NewStyle().Border(todayUnselectedBorder, true).Width(10).Align(lipgloss.Center)
+	selectedTodayStyle    = unSelectedTodayStyle.Border(todaySelectedBorder, true)
+	selectedTodayBar      = selectedTodayStyle.Render("1)Today")
+	unSelectedTodayBar    = unSelectedTodayStyle.Render("1)Today")
+	selectedDescStyle     = lipgloss.NewStyle().Border(lipgloss.NormalBorder(), true, false, false, false).Width(10)
+	unSelectedDescStyle   = selectedDescStyle.Border(lipgloss.NormalBorder(), true, false, true, false)
+	selectedDescBar       = selectedDescStyle.Render("2)Details")
+	unSelectedDescBar     = unSelectedDescStyle.Render("2)Details")
 )
+
+func (m Model) Init() tea.Cmd {
+	return nil
+}
 
 func InitialModel(width, height int) Model {
 	newTable := table.New(table.WithColumns(
@@ -63,7 +92,7 @@ func InitialModel(width, height int) Model {
 			{Title: "Time", Width: width / 9},
 			{Title: "Status", Width: width / 9},
 		}))
-	newTable.SetHeight(height - height/8 - 1)
+	newTable.SetHeight(height - height/8 - 3)
 	todayTable := table.New(table.WithColumns([]table.Column{
 		{
 			Title: "Course",
@@ -92,11 +121,6 @@ func InitialModel(width, height int) Model {
 	s.Selected.Background(lipgloss.Color("57"))
 	todayTable.SetStyles(s)
 	todayTable.Focus()
-	// Width =total width- width of each other box
-	todayBar := selectedElementStyle.Render("1) Today")
-	detailsBarStyle := unSelectedElementStyle.Border(lipgloss.NormalBorder(), true, false)
-	detailBar := detailsBarStyle.Render("2) Details")
-	remainingBar := remainingBarStyle.Width(width - 20).Render()
 	// newTable.Blur()
 	return Model{
 		tabView: 1,
@@ -108,7 +132,8 @@ func InitialModel(width, height int) Model {
 		Today: TodayAttendance{
 			Table: todayTable,
 		},
-		topBar: lipgloss.JoinHorizontal(lipgloss.Top, todayBar, detailBar, remainingBar),
+		height: height,
+		width:  width,
 	}
 }
 
@@ -116,14 +141,17 @@ func InitialModel(width, height int) Model {
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		m.Attendance.List.SetSize(msg.Width/3, msg.Height-1)
+		m.Attendance.List.SetSize(msg.Width/3, msg.Height-3)
 
 		m.Attendance.DetailedTable.SetColumns([]table.Column{
 			{Title: "Date", Width: msg.Width / 9},
 			{Title: "Time", Width: msg.Width / 9},
 			{Title: "Status", Width: msg.Width / 9},
 		})
-		m.Attendance.DetailedTable.SetHeight(msg.Height - msg.Height/8 - 1)
+		m.Attendance.DetailedTable.SetHeight(msg.Height - msg.Height/8 - 3) // i dont remember why -msg.height/8 but needed
+		m.Attendance.List.SetHeight(msg.Height - 3)
+		m.height = msg.Height
+		m.width = msg.Width
 		return m, nil
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -141,6 +169,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				Background(lipgloss.Color("0")).
 				Bold(false)
 			m.Attendance.DetailedTable.SetStyles(s)
+			return m, nil
 		case "right", "enter", "l":
 			if m.tabView == tableView {
 				m.Attendance.focusTable = true
@@ -202,6 +231,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.tabView = todayView
 		case "2":
 			m.tabView = tableView
+		case "?":
+			var cmd tea.Cmd
+			list, cmd := m.Attendance.List.Update(msg)
+			m.Attendance.List = list
+			return m, cmd
+		case "tab":
+			m.tabView = m.tabView + 1
+			if m.tabView > 2 {
+				m.tabView = todayView
+			}
 		}
 	}
 	var cmd1, cmd2, cmd3 tea.Cmd
@@ -228,9 +267,13 @@ func (ta TodayAttendance) View() string {
 func (m Model) View() string {
 	switch m.tabView {
 	case todayView:
-		return m.Today.View()
+		topBar := lipgloss.JoinHorizontal(lipgloss.Top, selectedTodayBar, unSelectedDescBar, remainingBarStyle(m.tabView, m.width-24))
+		return lipgloss.JoinVertical(lipgloss.Top, topBar, m.Today.View())
 	case tableView:
-		return m.Attendance.View()
+		topBar := lipgloss.JoinHorizontal(lipgloss.Top, unSelectedTodayBar, selectedDescBar, remainingBarStyle(m.tabView, m.width-24))
+		return lipgloss.JoinVertical(lipgloss.Top, topBar, m.Attendance.View())
+		// return topBar + m.Attendance.View()
+		// return "\n\n" + topBar + m.Attendance.View()
 	default:
 		panic("Unexpected tab no")
 	}
