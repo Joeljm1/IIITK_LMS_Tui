@@ -66,6 +66,8 @@ func InitialModel() Model {
 	t1.Cursor.SetMode(0)
 	t1.Focus()
 	t2 := textinput.New()
+	t2.EchoMode = textinput.EchoPassword
+	t2.EchoCharacter = '*'
 	t2.CharLimit = 8
 	t2.Placeholder = "Password"
 	t1.Cursor.SetMode(0)
@@ -117,7 +119,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "up", "ctrl+shift+tab", "down", "tab", "enter":
 			val := msg.String()
 			if m.focus == 2 && val == "enter" {
-				// TODO validate uname and psswd
 				uname := m.unameInp.Value()
 				psswd := m.psswdInp.Value()
 				m.validationErr = nil // to remove error

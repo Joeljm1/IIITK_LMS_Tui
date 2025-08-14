@@ -84,11 +84,11 @@ type CourseItem client.Course
 
 func (item CourseItem) Title() string {
 	sn := strings.Trim(item.Shortname, " ")
-	isSelected := " "
 	if _, ok := Selected[item.Id]; ok {
-		isSelected = "✅"
+		return fmt.Sprintf("[✅] %v", sn)
+
 	}
-	return fmt.Sprintf("[ %v ] %v", isSelected, sn)
+	return fmt.Sprintf("[  ] %v", sn)
 }
 func (item CourseItem) Description() string { return item.Fullname }
 func (item CourseItem) FilterValue() string {
