@@ -2,6 +2,7 @@ package mainModel
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/Joeljm1/IIITKlmsTui/internal/client"
@@ -98,7 +99,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, courses.GetAttendanceList(m.courseModel.Chosen, m.client)
 	case *client.LMSCLient:
 		m.client = msg
-		return m, courses.CheckChoiceFile(m.client)
+		return m, tea.Batch(courses.CheckChoiceFile(m.client), m.GetDash)
 
 	case spinner.TickMsg:
 		var cmd tea.Cmd
@@ -131,7 +132,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		m.isLoading = false
 	case client.AllAttendance:
-		m.isLoading = false
+		if m.contentModel.DashBoard.DashBoard != nil {
+			m.isLoading = false
+		}
 		m.contentModel.Attendance.Attendance = msg
 		var l []list.Item
 		var DetailedRows []table.Row
@@ -156,7 +159,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.contentModel.Today.Table.SetRows(todayRows)
 		m.contentModel.Attendance.List = list.New(l, list.NewDefaultDelegate(), m.width/3, m.height-3)
-
+	case *client.Dashboard:
+		log.Print(*msg)
+		if m.contentModel.Attendance.Attendance != nil {
+			m.isLoading = false
+		}
+		m.contentModel.DashBoard.DashBoard = msg
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":

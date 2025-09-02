@@ -14,6 +14,7 @@ type Model struct {
 	tabView    views
 	Attendance CourseAttendance
 	Today      TodayAttendance
+	DashBoard  DashBoard
 	height     int
 	width      int
 }
@@ -29,6 +30,11 @@ type CourseAttendance struct {
 
 type TodayAttendance struct {
 	Table table.Model
+}
+
+type DashBoard struct {
+	DashBoard *client.Dashboard
+	//TODO: for the view
 }
 
 type views int

@@ -25,7 +25,7 @@ type Dashboard struct {
 	} `json:"data"`
 }
 
-func (lms *LMSCLient) GetDashBoard() ([]Dashboard, error) {
+func (lms *LMSCLient) GetDashBoard() (*Dashboard, error) {
 	fullReq := fmt.Sprintf(req, lms.Sesskey)
 	now := time.Now()
 	timesortfrom := now.Add(-24 * time.Hour).Unix()  // 1 day ago
@@ -60,5 +60,5 @@ func (lms *LMSCLient) GetDashBoard() ([]Dashboard, error) {
 	if err != nil {
 		return nil, err
 	}
-	return dashResp, nil
+	return &dashResp[0], nil
 }
