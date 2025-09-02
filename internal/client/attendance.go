@@ -76,7 +76,7 @@ type Attendance struct {
 	Status string
 }
 
-type OverallAttendance struct { // TODO: Need to combine this too with attendance
+type OverallAttendance struct {
 	Total      string
 	Points     string
 	Percentage string
@@ -165,7 +165,7 @@ func (lmsCLient *LMSCLient) GetAttendanceDetails(id string) (*AttendanceDetails,
 }
 
 // Returns every sing attence of all courses
-func (lmsClient *LMSCLient) AllAttendance() (AllAttendance, error) { // TODO: enable sending course name to with attendance
+func (lmsClient *LMSCLient) AllAttendance() (AllAttendance, error) {
 	var allAttendance AllAttendance
 	var mut sync.Mutex
 	var g errgroup.Group

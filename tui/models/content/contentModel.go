@@ -16,7 +16,6 @@ type Model struct {
 	Today      TodayAttendance
 	height     int
 	width      int
-	// TODO: TODAY table
 }
 
 type CourseAttendance struct {

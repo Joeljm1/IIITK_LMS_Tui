@@ -66,6 +66,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.height = msg.Height
 		m.width = msg.Width
+		// so that they are initalized with width and height
 		if !m.sentWidth {
 			m.contentModel = content.InitialModel(m.width, m.height)
 			m.sentWidth = true
@@ -207,7 +208,7 @@ func (m model) View() string {
 	if m.isLoading {
 		return m.sp.View()
 	}
-	if m.login.Err != nil {
+	if m.login.IsLoggingIn() {
 		return m.login.View()
 	}
 	if m.contentModel.Attendance.Attendance != nil {

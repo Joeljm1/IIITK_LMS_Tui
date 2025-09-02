@@ -91,12 +91,13 @@ func (m Model) validateDetails(username, password string) tea.Cmd {
 		}
 		err = m.setDetailsToKeyring(username, password)
 		if err != nil {
-			return errValidDetail
+			return err
 		}
 		return Valid(true)
 	}
 }
 
+// to start the loading screen
 func (m Model) load() tea.Msg {
 	return Load(struct{}{})
 }
@@ -108,4 +109,9 @@ func (m Model) loginWithCLient() tea.Msg {
 		return err // should be correct
 	}
 	return client
+}
+
+// When m.Errr is set
+func (m Model) IsLoggingIn() bool {
+	return m.Err != nil
 }

@@ -1,3 +1,4 @@
+// NOTE: To set login status m.Err is not nil
 package login
 
 import (
@@ -155,6 +156,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		var cmd1 tea.Cmd
 		var cmd2 tea.Cmd
+		//? types for help not needed for input may be make it ctrl+?
 		if msg.String() != "?" {
 			m.unameInp, cmd1 = m.unameInp.Update(msg)
 			m.psswdInp, cmd2 = m.psswdInp.Update(msg)
@@ -165,7 +167,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	if m.Err != nil {
+	if m.IsLoggingIn() {
 		sb := strings.Builder{}
 		sb.WriteString("Username: ")
 		sb.WriteString(m.unameInp.View())

@@ -18,7 +18,7 @@ func InitialModel() Model {
 	return Model{
 		RecievedCourses: false,
 		Chosen:          nil,
-		// FIX: If nill pointer err may be cause List not initialized here but only when course is recieved so some fn it calling it before it is required
+		// WARN: If nill pointer err may be cause List not initialized here but only when course is recieved so some fn it calling it before it is required
 	}
 }
 
