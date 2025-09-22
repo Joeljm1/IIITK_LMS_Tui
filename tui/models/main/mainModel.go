@@ -1,6 +1,7 @@
 package mainModel
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -132,6 +133,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		m.isLoading = false
 	case client.AllAttendance:
+		//for checking which came first
 		if m.contentModel.DashBoard.DashBoard != nil {
 			m.isLoading = false
 		}
@@ -161,8 +163,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.contentModel.Attendance.List = list.New(l, list.NewDefaultDelegate(), m.width/3, m.height-3)
 	case *client.Dashboard:
 		log.Print(*msg)
+		//for checking which came first
 		if m.contentModel.Attendance.Attendance != nil {
 			m.isLoading = false
+		}
+		if msg.Error {
+			return m, m.Err(errors.New("dashboard loading error"))
 		}
 		m.contentModel.DashBoard.DashBoard = msg
 	case tea.KeyMsg:

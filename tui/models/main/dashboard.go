@@ -9,3 +9,9 @@ func (m model) GetDash() tea.Msg {
 	}
 	return dash
 }
+
+func (m model) Err(err error) tea.Cmd {
+	return func() tea.Msg {
+		return err
+	}
+}
