@@ -137,10 +137,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.contentModel.DashBoard.DashBoard != nil {
 			m.isLoading = false
 		}
+
+		//TODO: may be put this as sep fn to initialize??
 		m.contentModel.Attendance.Attendance = msg
 		var l []list.Item
 		var DetailedRows []table.Row
 		var todayRows []table.Row
+		//TODO: check if msg[0] exisit first
 		overall := fmt.Sprintf("Total: %v\nPoints: %v\nPercentage:%v", msg[0].Overall.Total, msg[0].Overall.Points, msg[0].Overall.Percentage)
 		for _, attend := range msg[0].Attendances {
 			row := table.Row{

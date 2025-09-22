@@ -23,6 +23,32 @@ func (ca CourseAttendance) View() string {
 	return lipgloss.JoinHorizontal(lipgloss.Top, ca.List.View(), lipgloss.NewStyle().Border(lipgloss.NormalBorder(), true).Render(ca.DetailedTable.View()), ca.OverAll)
 }
 
+func InitialCouseAttendance(width, height int) CourseAttendance {
+	newTable := table.New(table.WithColumns(
+		[]table.Column{
+			{Title: "Date", Width: width / 9},
+			{Title: "Time", Width: width / 9},
+			{Title: "Status", Width: width / 9},
+		}))
+	newTable.SetHeight(height - height/8 - 3)
+	s := table.DefaultStyles()
+	s.Header = s.Header.
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.Color("240")).
+		BorderBottom(true).
+		Bold(false)
+	s.Selected = s.Selected.
+		Foreground(lipgloss.Color("229")).
+		Background(lipgloss.Color("0")).
+		Bold(false)
+	newTable.SetStyles(s)
+	s.Selected.Background(lipgloss.Color("57"))
+	return CourseAttendance{
+		Attendance:    nil,
+		DetailedTable: newTable,
+		Pos:           0,
+	}
+}
 func (ca CourseAttendance) Update(msg tea.Msg) (CourseAttendance, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:

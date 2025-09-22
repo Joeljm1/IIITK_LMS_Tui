@@ -76,58 +76,16 @@ func (m Model) Init() tea.Cmd {
 }
 
 func InitialModel(width, height int) Model {
-	newTable := table.New(table.WithColumns(
-		[]table.Column{
-			{Title: "Date", Width: width / 9},
-			{Title: "Time", Width: width / 9},
-			{Title: "Status", Width: width / 9},
-		}))
-	newTable.SetHeight(height - height/8 - 3)
-	todayTable := table.New(table.WithColumns([]table.Column{
-		{
-			Title: "Course",
-			Width: width / 3,
-		},
-		{
-			Title: "Time",
-			Width: width / 3,
-		},
-		{
-			Title: "Status",
-			Width: width / 3,
-		},
-	}))
-	s := table.DefaultStyles()
-	s.Header = s.Header.
-		BorderStyle(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color("240")).
-		BorderBottom(true).
-		Bold(false)
-	s.Selected = s.Selected.
-		Foreground(lipgloss.Color("229")).
-		Background(lipgloss.Color("0")).
-		Bold(false)
-	newTable.SetStyles(s)
-	s.Selected.Background(lipgloss.Color("57"))
-	todayTable.SetStyles(s)
-	todayTable.Focus()
 	// newTable.Blur()
 	return Model{
-		tabView: 1,
-		Attendance: CourseAttendance{
-			Attendance:    nil,
-			DetailedTable: newTable,
-			Pos:           0,
-		},
-		Today: TodayAttendance{
-			Table: todayTable,
-		},
-		height: height,
-		width:  width,
+		tabView:    1,
+		Attendance: InitialCouseAttendance(width, height),
+		Today:      InitialTodayAttendance(width, height),
+		height:     height,
+		width:      width,
 	}
 }
 
-// TODO: Split update of today and details
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
