@@ -1,8 +1,6 @@
 package content
 
 import (
-	"github.com/Joeljm1/IIITKlmsTui/internal/client"
-	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -16,59 +14,12 @@ type Model struct {
 	width      int
 }
 
-type DashBoard struct {
-	DashBoard *client.Dashboard
-	//TODO: for the view
-}
-
 type views int
 
 const (
 	todayView views = iota + 1
 	tableView
 	dashView
-)
-
-func unselectedTodayBorder() lipgloss.Border {
-	b := lipgloss.NormalBorder()
-	b.BottomRight = "┘"
-	b.TopRight = "┬"
-	return b
-}
-
-func selectedTodayBorder() lipgloss.Border {
-	b := lipgloss.NormalBorder()
-	b.Bottom = " "
-	b.BottomLeft = "╵"
-	b.BottomRight = "└"
-	b.TopRight = "┬"
-	return b
-}
-
-func remainingBarStyle(selected views, width int) string {
-	b := lipgloss.NormalBorder()
-	b.TopLeft = "┬"
-	switch selected {
-	case todayView:
-		b.BottomLeft = "┴"
-	case tableView:
-		b.BottomLeft = "└"
-	}
-	s := lipgloss.NewStyle().Width(width).Border(b, true).Render("")
-	return s
-}
-
-var (
-	todaySelectedBorder   = selectedTodayBorder()
-	todayUnselectedBorder = unselectedTodayBorder()
-	unSelectedTodayStyle  = lipgloss.NewStyle().Border(todayUnselectedBorder, true).Width(10).Align(lipgloss.Center)
-	selectedTodayStyle    = unSelectedTodayStyle.Border(todaySelectedBorder, true)
-	selectedTodayBar      = selectedTodayStyle.Render("1)Today")
-	unSelectedTodayBar    = unSelectedTodayStyle.Render("1)Today")
-	selectedDescStyle     = lipgloss.NewStyle().Border(lipgloss.NormalBorder(), true, false, false, false).Width(10)
-	unSelectedDescStyle   = selectedDescStyle.Border(lipgloss.NormalBorder(), true, false, true, false)
-	selectedDescBar       = selectedDescStyle.Render("2)Details")
-	unSelectedDescBar     = unSelectedDescStyle.Render("2)Details")
 )
 
 func (m Model) Init() tea.Cmd {
@@ -91,16 +42,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.height = msg.Height
 		m.width = msg.Width
-		return m, nil
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "1":
 			m.tabView = todayView
 		case "2":
 			m.tabView = tableView
+		case "3":
+			m.tabView = dashView
 		case "tab":
 			m.tabView = m.tabView + 1
-			if m.tabView > 2 {
+			if m.tabView > 3 {
 				m.tabView = todayView
 			}
 		}
@@ -116,16 +68,30 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
+	// switch m.tabView {
+	// case todayView:
+	// 	topBar := lipgloss.JoinHorizontal(lipgloss.Top, selected1Bar, unSelected2Bar, remainingBarStyle(m.tabView, m.width-24))
+	// 	return lipgloss.JoinVertical(lipgloss.Top, topBar, m.Today.View())
+	// case tableView:
+	// 	topBar := lipgloss.JoinHorizontal(lipgloss.Top, unSelected1Bar, selected2Bar, remainingBarStyle(m.tabView, m.width-24))
+	// 	return lipgloss.JoinVertical(lipgloss.Top, topBar, m.Attendance.View())
+	// 	// return topBar + m.Attendance.View()
+	// 	// return "\n\n" + topBar + m.Attendance.View()
+	// case dashView:
+	// 	topBar := lipgloss.JoinHorizontal(lipgloss.Top, unSelected1Bar, selected2Bar, remainingBarStyle(m.tabView, m.width-24))
+	// 	return lipgloss.JoinVertical(lipgloss.Top, topBar, m.DashBoard.View())
+	// default:
+	// 	panic("Unexpected tab no")
+	// }
+	topBar := m.topBar()
 	switch m.tabView {
 	case todayView:
-		topBar := lipgloss.JoinHorizontal(lipgloss.Top, selectedTodayBar, unSelectedDescBar, remainingBarStyle(m.tabView, m.width-24))
 		return lipgloss.JoinVertical(lipgloss.Top, topBar, m.Today.View())
 	case tableView:
-		topBar := lipgloss.JoinHorizontal(lipgloss.Top, unSelectedTodayBar, selectedDescBar, remainingBarStyle(m.tabView, m.width-24))
 		return lipgloss.JoinVertical(lipgloss.Top, topBar, m.Attendance.View())
-		// return topBar + m.Attendance.View()
-		// return "\n\n" + topBar + m.Attendance.View()
+	case dashView:
+		return lipgloss.JoinVertical(lipgloss.Top, topBar, m.DashBoard.View())
 	default:
-		panic("Unexpected tab no")
+		return "Error unexpected tab no"
 	}
 }

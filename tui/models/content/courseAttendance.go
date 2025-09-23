@@ -42,7 +42,6 @@ func InitialCouseAttendance(width, height int) CourseAttendance {
 		Background(lipgloss.Color("0")).
 		Bold(false)
 	newTable.SetStyles(s)
-	s.Selected.Background(lipgloss.Color("57"))
 	return CourseAttendance{
 		Attendance:    nil,
 		DetailedTable: newTable,

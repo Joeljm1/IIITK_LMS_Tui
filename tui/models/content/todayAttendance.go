@@ -3,6 +3,7 @@ package content
 import (
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // TODO: Handle resizing
@@ -25,6 +26,12 @@ func InitialTodayAttendance(width, height int) TodayAttendance {
 			Width: width / 3,
 		},
 	}))
+	s := table.DefaultStyles()
+	s.Selected = s.Selected.
+		Foreground(lipgloss.Color("229")).
+		Background(lipgloss.Color("0")).
+		Bold(false)
+	todayTable.SetStyles(s)
 	return TodayAttendance{
 		Table: todayTable,
 	}
@@ -55,6 +62,7 @@ func (ta TodayAttendance) Update(msg tea.Msg) (TodayAttendance, tea.Cmd) {
 		}
 		ta.Table.SetColumns(cols)
 		ta.Table.SetHeight(msg.Height - msg.Height/8 - 3)
+		return ta, nil
 	}
 	ta.Table, cmd = ta.Table.Update(msg)
 	return ta, cmd
