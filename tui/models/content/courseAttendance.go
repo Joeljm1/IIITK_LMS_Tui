@@ -76,7 +76,6 @@ func (ca CourseAttendance) Update(msg tea.Msg) (CourseAttendance, tea.Cmd) {
 				Background(lipgloss.Color("0")).
 				Bold(false)
 			ca.DetailedTable.SetStyles(s)
-			return ca, nil
 		case "right", "enter", "l":
 			// if ca.tabView == tableView {
 			ca.focusTable = true

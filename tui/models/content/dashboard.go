@@ -13,7 +13,6 @@ type DashBoard struct {
 	// TODO: for the view
 }
 
-// View generates a beautiful dashboard display using lipgloss
 func (d DashBoard) View() string {
 	if d.DashBoard == nil {
 		noEventsStyle := lipgloss.NewStyle().
@@ -45,14 +44,12 @@ func (d DashBoard) View() string {
 		return emptyStyle.Render("No upcoming events")
 	}
 
-	// Header style
 	headerStyle := lipgloss.NewStyle().
 		Bold(true).
 		Foreground(lipgloss.Color("99")).
 		Padding(0, 1).
 		MarginBottom(1)
 
-	// Event card styles
 	eventCardStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("99")).
@@ -64,7 +61,6 @@ func (d DashBoard) View() string {
 		BorderForeground(lipgloss.Color("196")).
 		Foreground(lipgloss.Color("196"))
 
-	// Event content styles
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
 		Foreground(lipgloss.Color("229"))
@@ -91,10 +87,8 @@ func (d DashBoard) View() string {
 	header := headerStyle.Render("📅 Upcoming Events")
 
 	for _, event := range d.DashBoard.Data.Events {
-		// Format timestamp
 		timeStr := time.Unix(int64(event.Timestart), 0).Format("Jan 02, 2006 15:04")
 
-		// Build event content
 		var lines []string
 		lines = append(lines, titleStyle.Render(event.Name))
 		lines = append(lines, courseStyle.Render("📚 "+event.Course.Fullname))
@@ -115,7 +109,6 @@ func (d DashBoard) View() string {
 
 		eventContent := strings.Join(lines, "\n")
 
-		// Apply appropriate card style
 		var card string
 		if event.Overdue {
 			card = overdueCardStyle.Render(eventContent)
@@ -126,7 +119,6 @@ func (d DashBoard) View() string {
 		eventCards = append(eventCards, card)
 	}
 
-	// Join all cards vertically
 	allContent := strings.Join(eventCards, "\n")
 
 	return lipgloss.JoinVertical(lipgloss.Left, header, allContent)
